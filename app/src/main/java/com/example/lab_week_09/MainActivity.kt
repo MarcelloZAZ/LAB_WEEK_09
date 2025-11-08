@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.lab_week_09.ui.theme.LAB_WEEK_09Theme
+import com.example.lab_week_09.ui.theme.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +34,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Data model
 data class Student(
     var name: String
 )
@@ -81,7 +80,9 @@ fun HomeContent(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = stringResource(id = R.string.enter_item))
+                OnBackgroundTitleText(
+                    text = stringResource(id = R.string.enter_item)
+                )
 
                 TextField(
                     value = inputField.name,
@@ -90,11 +91,10 @@ fun HomeContent(
                     singleLine = true
                 )
 
-                Button(
-                    onClick = onButtonClick,
-                    modifier = Modifier.padding(top = 8.dp)
+                PrimaryTextButton(
+                    text = stringResource(id = R.string.button_click)
                 ) {
-                    Text(text = stringResource(id = R.string.button_click))
+                    onButtonClick()
                 }
             }
         }
@@ -106,7 +106,7 @@ fun HomeContent(
                     .padding(vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = item.name)
+                OnBackgroundItemText(text = item.name)
             }
         }
     }
