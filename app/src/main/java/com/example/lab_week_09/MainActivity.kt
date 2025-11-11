@@ -16,6 +16,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.lab_week_09.ui.theme.*
 
 class MainActivity : ComponentActivity() {
@@ -27,19 +33,51 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Home()
+                    val navController = rememberNavController()
+                    App(navController = navController)
                 }
             }
         }
     }
 }
 
-data class Student(
-    var name: String
-)
+// --------------------------------------
+// Data model
+// --------------------------------------
+data class Student(var name: String)
 
+// --------------------------------------
+// Root navigation composable
+// --------------------------------------
 @Composable
-fun Home() {
+fun App(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") {
+            Home { listData ->
+                navController.navigate("resultContent/?listData=$listData")
+            }
+        }
+
+        composable(
+            "resultContent/?listData={listData}",
+            arguments = listOf(navArgument("listData") {
+                type = NavType.StringType
+            })
+        ) {
+            val listData = it.arguments?.getString("listData").orEmpty()
+            ResultContent(listData)
+        }
+    }
+}
+
+// --------------------------------------
+// Home Screen
+// --------------------------------------
+@Composable
+fun Home(navigateFromHomeToResult: (String) -> Unit) {
     val listData = remember {
         mutableStateListOf(
             Student("Tanu"),
@@ -50,24 +88,33 @@ fun Home() {
     var inputField = remember { mutableStateOf(Student("")) }
 
     HomeContent(
-        listData,
-        inputField.value,
-        { input -> inputField.value = inputField.value.copy(name = input) },
-        {
+        listData = listData,
+        inputField = inputField.value,
+        onInputValueChange = { input ->
+            inputField.value = inputField.value.copy(name = input)
+        },
+        onButtonClick = {
             if (inputField.value.name.isNotBlank()) {
                 listData.add(inputField.value)
                 inputField.value = Student("")
             }
+        },
+        navigateFromHomeToResult = {
+            navigateFromHomeToResult(listData.toList().toString())
         }
     )
 }
 
+// --------------------------------------
+// Home Content Layout
+// --------------------------------------
 @Composable
 fun HomeContent(
     listData: SnapshotStateList<Student>,
     inputField: Student,
     onInputValueChange: (String) -> Unit,
-    onButtonClick: () -> Unit
+    onButtonClick: () -> Unit,
+    navigateFromHomeToResult: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -91,10 +138,15 @@ fun HomeContent(
                     singleLine = true
                 )
 
-                PrimaryTextButton(
-                    text = stringResource(id = R.string.button_click)
-                ) {
-                    onButtonClick()
+                // Dua tombol: Submit dan Finish
+                Row {
+                    PrimaryTextButton(
+                        text = stringResource(id = R.string.button_click)
+                    ) { onButtonClick() }
+
+                    PrimaryTextButton(
+                        text = stringResource(id = R.string.button_navigate)
+                    ) { navigateFromHomeToResult() }
                 }
             }
         }
@@ -112,10 +164,27 @@ fun HomeContent(
     }
 }
 
+// --------------------------------------
+// Result Content Screen
+// --------------------------------------
+@Composable
+fun ResultContent(listData: String) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OnBackgroundItemText(text = listData)
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
-fun PreviewHome() {
+fun PreviewApp() {
+    val navController = rememberNavController()
     LAB_WEEK_09Theme {
-        Home()
+        App(navController)
     }
 }
